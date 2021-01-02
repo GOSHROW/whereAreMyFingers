@@ -20,9 +20,9 @@ getRedirectCommand() {
     # returns an to-be evaluated command which redirects xinput from Devices
     local deviceIDArray=$(getDevices)
     local redirectCommand=""
-    local BufferFile="$1"
+    local InputBuffer="$1"
     for deviceID in ${deviceIDArray[@]}; do
-        redirectCommand+="xinput test $deviceID >> $BufferFile & "
+        redirectCommand+="xinput test $deviceID >> $InputBuffer & "
     done
     if [ -z "$redirectCommand" ]; then 
         printf "No Devices found to be added to the Redirection Buffer"
@@ -37,9 +37,27 @@ getRedirectCommand() {
 initDeviceInputRedirect() {
     killall -q xinput
     # starts the process unaffected by previous run
-    local redirectCommand=$(getRedirectCommand Buffer1)
+    local InputBuffer="$1"
+    local redirectCommand=$(getRedirectCommand $InputBuffer)
     eval $redirectCommand
 }
 
+getPointerActions() {
+    local InputBuffer="$1"
+    local pointerMotionActionCount=$(grep -o 'motion' $InputBuffer | wc -l)
+    local pointerButtonActionCount=$(grep -o 'button' $InputBuffer | wc -l)
+    echo `expr $pointerMotionActionCount + $pointerButtonActionCount`
+}
 
-initDeviceInputRedirect
+
+getKeyActions() {
+    local InputBuffer="$1"
+    local keyActionCount=$(grep -o 'press' $InputBuffer | wc -l)
+    # Counting key release will only duplicates the effective keystrokes
+    # Key release also may break concurrency of a keystroke on buffer change
+    echo "$keyActionCount"
+}
+
+initDeviceInputRedirect Buffer1 & 
+getPointerActions Buffer1
+getKeyActions Buffer1
