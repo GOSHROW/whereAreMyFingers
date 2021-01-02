@@ -39,25 +39,64 @@ initDeviceInputRedirect() {
     # starts the process unaffected by previous run
     local InputBuffer="$1"
     local redirectCommand=$(getRedirectCommand $InputBuffer)
-    eval $redirectCommand
+    eval $redirectCommand 2> DeviceError.log 
 }
 
 getPointerActions() {
     local InputBuffer="$1"
     local pointerMotionActionCount=$(grep -o 'motion' $InputBuffer | wc -l)
+    # avoided motion coordinates as it isn't quantifiable aginst keystrokes
     local pointerButtonActionCount=$(grep -o 'button' $InputBuffer | wc -l)
     echo `expr $pointerMotionActionCount + $pointerButtonActionCount`
 }
 
-
 getKeyActions() {
     local InputBuffer="$1"
     local keyActionCount=$(grep -o 'press' $InputBuffer | wc -l)
-    # Counting key release will only duplicates the effective keystrokes
+    # Counting key release will only duplicate the effective keystrokes
     # Key release also may break concurrency of a keystroke on buffer change
     echo "$keyActionCount"
 }
 
-initDeviceInputRedirect Buffer1 & 
-getPointerActions Buffer1
-getKeyActions Buffer1
+bufferControld() {
+    local bufferNumber=0
+    while true; do
+        let bufferNumber=1-bufferNumber
+        newBufferName="Buffer${bufferNumber}"
+        echo $newBufferName
+        touch $newBufferName
+        initDeviceInputRedirect $newBufferName & 
+        sleep 1
+        if [ -n "$bufferName" ]; then
+            getPointerActions $bufferName
+            getKeyActions $bufferName
+            rm $bufferName
+        fi
+        local bufferName=$newBufferName
+        sleep 14
+    done
+    killall -q xinput
+    rm Buffer*
+}
+
+bufferControld
+
+# initDeviceInputRedirect buffer1 & 
+# sleep 5
+# getKeyActions buffer1
+# getPointerActions buffer1
+# sleep 5 
+# getKeyActions buffer1
+# getPointerActions buffer1
+
+# rm buffer1
+# sleep 5
+
+# touch buffer1
+# initDeviceInputRedirect buffer1 & 
+# sleep 5
+# getKeyActions buffer1
+# getPointerActions buffer1 
+
+
+# killall -q xinput
