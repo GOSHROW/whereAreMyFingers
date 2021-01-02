@@ -40,6 +40,7 @@ initDeviceInputRedirect() {
     local InputBuffer="$1"
     local redirectCommand=$(getRedirectCommand $InputBuffer)
     eval $redirectCommand 2> DeviceError.log 
+    # Logs errors of xinput failing for master virtual devices or otherwise
 }
 
 getPointerActions() {
@@ -62,11 +63,16 @@ bufferControld() {
     local bufferNumber=0
     while true; do
         let bufferNumber=1-bufferNumber
+        # need just two buffers to maintain concurrenct read and write
         newBufferName="Buffer${bufferNumber}"
         echo $newBufferName
         touch $newBufferName
         initDeviceInputRedirect $newBufferName & 
         sleep 1
+        # ensures that previous bg function invocation has success
+        # thus buffer is switched without losing any information in the moment
+        # further loss of info may arise from failure of xinput to provide
+        # then implement with watch on /dev/input events and mouse / mice
         if [ -n "$bufferName" ]; then
             getPointerActions $bufferName
             getKeyActions $bufferName
@@ -74,29 +80,14 @@ bufferControld() {
         fi
         local bufferName=$newBufferName
         sleep 14
+        # can suitably increase this to any feasible sleep time; needs testing
     done
     killall -q xinput
     rm Buffer*
 }
+# Test the bufferControld by `watch cat Buffer1` and `watch cat Buffer0`
+# At this commit, other neccessary debug statements would go into the console
 
 bufferControld
 
-# initDeviceInputRedirect buffer1 & 
-# sleep 5
-# getKeyActions buffer1
-# getPointerActions buffer1
-# sleep 5 
-# getKeyActions buffer1
-# getPointerActions buffer1
-
-# rm buffer1
-# sleep 5
-
-# touch buffer1
-# initDeviceInputRedirect buffer1 & 
-# sleep 5
-# getKeyActions buffer1
-# getPointerActions buffer1 
-
-
-# killall -q xinput
+# After aborting the daemon, clean its zombies by `killall -q xinput`
