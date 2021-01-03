@@ -1,5 +1,13 @@
 #! /bin/sh -
 
+actionLog="./actionLogs.log"
+# Keep this in accord with the scripts that aim to work upon the extracted data
+# Also as a part of the permanent memory, the logs maybe used across sessions
+bufferSwitchTime=30
+# Provided in seconds, keep >1s
+# If too quick, frequent Action Logging and frequent Buffer Switching
+# If too tardy, each Action Logging is expensive and is less real time
+
 getDevices() {
     # deviceIDArray=("${(@f)$(xinput list --id-only)}") 
     # Use the previous line for a simpler implementation in zsh
@@ -48,7 +56,8 @@ getPointerActions() {
     local pointerMotionActionCount=$(grep -o 'motion' $InputBuffer | wc -l)
     # avoided motion coordinates as it isn't quantifiable aginst keystrokes
     local pointerButtonActionCount=$(grep -o 'button' $InputBuffer | wc -l)
-    echo `expr $pointerMotionActionCount + $pointerButtonActionCount`
+    local ret=`expr $pointerMotionActionCount + $pointerButtonActionCount`
+    echo $ret >> "$actionLog"
 }
 
 getKeyActions() {
@@ -56,7 +65,7 @@ getKeyActions() {
     local keyActionCount=$(grep -o 'press' $InputBuffer | wc -l)
     # Counting key release will only duplicate the effective keystrokes
     # Key release also may break concurrency of a keystroke on buffer change
-    echo "$keyActionCount"
+    echo "$keyActionCount"  >> "$actionLog"
 }
 
 bufferControld() {
@@ -65,7 +74,7 @@ bufferControld() {
         let bufferNumber=1-bufferNumber
         # need just two buffers to maintain concurrenct read and write
         newBufferName="Buffer${bufferNumber}"
-        echo $newBufferName
+        # echo $newBufferName
         touch $newBufferName
         initDeviceInputRedirect $newBufferName & 
         sleep 1
@@ -74,13 +83,13 @@ bufferControld() {
         # further loss of info may arise from failure of xinput to provide
         # then implement with watch on /dev/input events and mouse / mice
         if [ -n "$bufferName" ]; then
+            # log the Action functions into the $actionLog
             getPointerActions $bufferName
             getKeyActions $bufferName
             rm $bufferName
         fi
         local bufferName=$newBufferName
-        sleep 14
-        # can suitably increase this to any feasible sleep time; needs testing
+        sleep `expr $bufferSwitchTime - 1`
     done
     killall -q xinput
     rm Buffer*
@@ -90,4 +99,4 @@ bufferControld() {
 
 bufferControld
 
-# After aborting the daemon, clean its zombies by `killall -q xinput`
+# After aborting the daemon, clean its zombies by `killall xinput` 
