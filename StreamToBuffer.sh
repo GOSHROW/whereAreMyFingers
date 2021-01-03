@@ -84,8 +84,14 @@ bufferControld() {
         # then implement with watch on /dev/input events and mouse / mice
         if [ -n "$bufferName" ]; then
             # log the Action functions into the $actionLog
+            # epochForIndex=`date +"%s"`
+            # echo $epochForIndex >> "$actionLog"
+            # can be used for Indexing By Time for easy analysis over long time
+            # but adds up unneccessarily to memory otherwise
             getPointerActions $bufferName
             getKeyActions $bufferName
+            echo "EA" >> "$actionLog"
+            #End of Action
             rm $bufferName
         fi
         local bufferName=$newBufferName
