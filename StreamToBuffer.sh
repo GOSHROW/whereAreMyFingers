@@ -90,7 +90,7 @@ bufferControld() {
             # but adds up unneccessarily to memory otherwise
             getPointerActions $bufferName
             getKeyActions $bufferName
-            echo "EA" >> "$actionLog"
+            echo "EOA" >> "$actionLog"
             #End of Action
             rm $bufferName
         fi

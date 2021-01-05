@@ -1,3 +1,2 @@
 Buffer*
-DeviceError.log
-actionLogs.log
+*.log
