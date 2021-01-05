@@ -47,7 +47,7 @@ initDeviceInputRedirect() {
     # starts the process unaffected by previous run
     local InputBuffer="$1"
     local redirectCommand=$(getRedirectCommand $InputBuffer)
-    eval $redirectCommand 2> DeviceError.log 
+    eval $redirectCommand 2> Error.log 
     # Logs errors of xinput failing for master virtual devices or otherwise
 }
 
