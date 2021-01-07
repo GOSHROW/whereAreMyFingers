@@ -60,3 +60,23 @@ getAverageOverNLogs() {
     local keyboardAverageOverNLogs=$(( keyboardCumulativeOverNLogs / N))
     echo "$pointerAverageOverNLogs $keyboardAverageOverNLogs"
 }
+
+getRatio() {
+    local N="$1"
+    local numerator="$2"
+    # distinguishes keyboard:pointer and pointer:keyboard
+    # k and K are keyboard:pointer, other keys are the inverse
+    local cumulativeArrayOverNLogs=($(getCumulativeOverNLogs $N))
+    local pointerCumulativeOverNLogs=${cumulativeArrayOverNLogs[0]}
+    local keyboardCumulativeOverNLogs=${cumulativeArrayOverNLogs[1]}
+    if [ $numerator = "k" ] || [ $numerator = "K" ]; then
+        echo "$(( keyboardCumulativeOverNLogs / pointerCumulativeOverNLogs))"
+    else
+        echo "$(( pointerCumulativeOverNLogs / keyboardCumulativeOverNLogs))"
+    fi
+}
+
+# myFingersLog() {
+#     # main function, gets the user input from STDIN
+
+# }
