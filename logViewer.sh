@@ -6,6 +6,10 @@ bufferSwitchTime=30
 # keep both consistent with that in StreamToBuffer
 
 getLastNCompleteLogs() {
+    local N=`expr "$1" \* 3`
+    # 3 lines of Pointer Action Log, Keyboard Action Log and EOA
+    local outputFile="$2"
+
     local actionLogEndLine=`tail -1 $actionLog`
     while [ "$actionLogEndLine" != "EOA" ]; do
         sleep 0.2
@@ -13,35 +17,25 @@ getLastNCompleteLogs() {
         actionLogEndLine=`tail -1 $actionLog`
     done
     # Ensures that the Action Logs being read are complete in nature
-
-    local N=`expr "$1" \* 3`
-    # 3 lines of Pointer Action Log, Keyboard Action Log and EOA
-    local outputFile="$2"
-    echo "`tail -$N $actionLog`" >> $outputFile
+    echo "`tail -$N $actionLog`" > $outputFile
+    # tail will adjust for cases exceeding no of records 
 }
 
 getSeperatedNLogs() {
     # seperate out the File Contents for Pointer and Keyboard Logs, remove EOAs
-    local joinedLogs="$1"
+    local N="$1"
+    local joinedLogs="lastNCompleteLogs.log"
+    getLastNCompleteLogs $N $joinedLogs
     local pointerLogs="$2"
     local keyboardLogs="$3"
     sed -n '1~3p' $joinedLogs > $pointerLogs
     sed -n '2~3p' $joinedLogs > $keyboardLogs
+    rm $outputFile
 }
 
 getCumulativeOverNLogs() {
     local N="$1"
-    local outputFile="lastNCompleteLogs.log"
-    if ! [ -s $actionLog ]; then 
-        echo "whereAreMyFingers daemon does not log to provided file" >> Error.log
-        exit 1
-    fi
-    # checks that the file is not empty / path is incorrect
-
-    getLastNCompleteLogs $N $outputFile
-    getSeperatedNLogs $outputFile PointerLogs.log KeyboardLogs.log
-    rm $outputFile
-
+    getSeperatedNLogs $N PointerLogs.log KeyboardLogs.log
     local PointerCount=0 KeyboardCount=0
     while IFS= read -r -u 4 PointerLog && IFS= read -r -u 5 KeyboardLog; do
         (( PointerCount+=PointerLog ))
@@ -94,13 +88,39 @@ getN() {
     echo "$N"
 }
 
-# myFingersLog() {
-#     # main function, gets the user input from STDIN
-#     resultantView="$1"
-#     case $resultantView in
-#         "-c" | "--complete")
-#             case $2 in
-#                 "-T" | "--time")
-#         ;;
-#     esac
-# }
+myFingersLog() {
+    # main function, gets the user input from STDIN
+    if ! [ -s $actionLog ]; then 
+        echo "whereAreMyFingers daemon does not log to provided file" >> Error.log
+        exit 1
+    fi
+    # checks that the file is not empty / path is incorrect
+
+    local resultantView="$1"
+    local completeLogsDefaultPath="lastNCompleteLogs.log"
+    case $resultantView in
+        "-c" | "--complete")
+        # case of getLastNCompleteLogs
+            case $2 in
+                "-T" | "--time" | "-R" | "--record")
+                    Nparameter=($(getN $2 $3))
+                    getLastNCompleteLogs $Nparameter $completeLogsDefaultPath
+                ;;
+                *)
+                    if test $# -eq 2; then    
+                        Nparameter=($(getN -R $2))
+                        getLastNCompleteLogs $Nparameter $completeLogsDefaultPath
+                    elif test $# -eq 3; then
+                        completeLogsPath="$2"
+                        Nparameter=($(getN -R $3))
+                        getLastNCompleteLogs $Nparameter $completeLogsPath
+                    else
+                        completeLogsPath="$2"
+                        Nparameter=($(getN $3 $4))
+                        getLastNCompleteLogs $Nparameter $completeLogsPath
+                    fi
+                ;;
+            esac
+        ;;
+    esac
+}
