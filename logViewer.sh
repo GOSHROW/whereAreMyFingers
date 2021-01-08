@@ -77,13 +77,30 @@ getRatio() {
     fi
 }
 
-timeToLogNumbers() {
-    # provides the -time option
-    timeParameter="$1"
-    echo "$(( timeParameter / bufferSwitchTime ))"
+getN() {
+    # provides an option to extract to be independent of logging frequency
+    local option="$1"
+    local valueParameter="$2"
+    declare N
+    case $option in 
+        "-T" | "--time")
+            # the valueparameter now is assumed to have unit seconds
+            N=$(( valueParameter / bufferSwitchTime ))
+        ;;
+        "-R" | "--record")
+            N=$valueParameter
+        ;;
+    esac
+    echo "$N"
 }
 
 # myFingersLog() {
 #     # main function, gets the user input from STDIN
-
+#     resultantView="$1"
+#     case $resultantView in
+#         "-c" | "--complete")
+#             case $2 in
+#                 "-T" | "--time")
+#         ;;
+#     esac
 # }
