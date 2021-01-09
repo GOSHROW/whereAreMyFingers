@@ -83,14 +83,14 @@ getN() {
             N=$(( valueParameter / bufferSwitchTime ))
         ;;
         "-R" | "--record")
-            # -R is assumed default as well in myFingersLog
+            # -R is assumed default as well in viewMyFingers
             N=$valueParameter
         ;;
     esac
     echo "$N"
 }
 
-myFingersLog() {
+viewMyFingers() {
     # main function, gets the user input from STDIN
     if ! [ -s $actionLog ]; then 
         echo "whereAreMyFingers daemon does not log to provided file" >> Error.log
@@ -152,5 +152,39 @@ myFingersLog() {
                 ;;
             esac
         ;;
+        "-C" | "--cumulative")
+        # case of cumulative of seperated pointer and keyboard
+            case $2 in 
+                "-T" | "--time" | "-R" | "--record")
+                    Nparameter=($(getN $2 $3))
+                    cumulativeLogs=($(getCumulativeOverNLogs $Nparameter))
+                    echo ${cumulativeLogs[@]}
+                    # order is PointerLogs and then KeyboardLogs
+                ;;
+                *)
+                    Nparameter=($(getN -R $2))
+                    cumulativeLogs=($(getCumulativeOverNLogs $Nparameter))
+                    echo ${cumulativeLogs[@]}
+                ;;
+            esac
+        ;;
+        "-a" | "--average")
+        # case of average of seperated pointer and keyboard
+            case $2 in 
+                "-T" | "--time" | "-R" | "--record")
+                    Nparameter=($(getN $2 $3))
+                    averageLogs=($(getAverageOverNLogs $Nparameter))
+                    echo ${averageLogs[@]}
+                    # order is PointerLogs and then KeyboardLogs
+                ;;
+                *)
+                    Nparameter=($(getN -R $2))
+                    averageLogs=($(getAverageOverNLogs $Nparameter))
+                    echo ${averageLogs[@]}
+                ;;
+            esac
+        ;;
+
     esac
 }
+
