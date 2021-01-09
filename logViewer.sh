@@ -65,11 +65,16 @@ getRatio() {
     local cumulativeArrayOverNLogs=($(getCumulativeOverNLogs $N))
     local pointerCumulativeOverNLogs=${cumulativeArrayOverNLogs[0]}
     local keyboardCumulativeOverNLogs=${cumulativeArrayOverNLogs[1]}
+    declare ratio
     if [ $numerator = "k" ] || [ $numerator = "K" ]; then
-        echo "$(( keyboardCumulativeOverNLogs / pointerCumulativeOverNLogs))"
+        ratio=$( echo "scale=3; $keyboardCumulativeOverNLogs / $pointerCumulativeOverNLogs" | bc -l)
+    elif [ $numerator = "p" ] || [ $numerator = "P" ]; then
+        ratio=$( echo "scale=3; $pointerCumulativeOverNLogs / $keyboardCumulativeOverNLogs" | bc -l)
     else
-        echo "$(( pointerCumulativeOverNLogs / keyboardCumulativeOverNLogs))"
+        printf "ILLEGAL args"
+        exit 1
     fi
+    echo $ratio
 }
 
 getN() {
@@ -184,7 +189,44 @@ viewMyFingers() {
                 ;;
             esac
         ;;
-
+        *)
+            # default case  is -r --ratio
+            declare ratio
+            case $1 in 
+                "-T" | "--time" | "-R" | "--record")
+                    Nparameter=($(getN $1 $2))
+                    ratio=($(getRatio $Nparameter K))
+                ;;
+                "-r" | "--ratio")
+                    case $2 in 
+                        "-T" | "--time" | "-R" | "--record")
+                            Nparameter=($(getN $2 $3))
+                            ratio=($(getRatio $Nparameter K))
+                        ;;
+                        "-i" | "--inverse")
+                            case $3 in 
+                            "-T" | "--time" | "-R" | "--record")
+                                Nparameter=($(getN $3 $4))
+                                ratio=($(getRatio $Nparameter P))
+                            ;;
+                            *)
+                                Nparameter=($(getN -R $3))
+                                ratio=($(getRatio $Nparameter P))
+                            ;;
+                            esac
+                        ;;
+                        *)
+                            Nparameter=($(getN -R $2))
+                            ratio=($(getRatio $Nparameter K))
+                        ;;
+                    esac
+                ;;
+                *)
+                    Nparameter=($(getN -R $1))
+                    ratio=($(getRatio $Nparameter K))
+                ;;
+            esac
+            echo $ratio
+        ;;
     esac
 }
-
