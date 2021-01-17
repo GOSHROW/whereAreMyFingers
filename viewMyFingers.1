@@ -1,0 +1,116 @@
+.TH viewMyFingers 1 "17-Jan-2021" whereAreMyFingers
+.SH NAME
+.B viewmyFingers -
+reads the log files for whereAreMyFingers
+.SH SYNOPSIS
+.B viewMyFingers
+[
+.I resultantView
+] [
+.I viewOptions
+] [
+.I NparameterOptions
+] 
+.B NValue
+.PP
+.SH DESCRIPTION
+It provides multiple implementations and interpretations to read the log files which store Pointer Device Actions and Keyboard Device Actions. Read up the README.md at github.com/GOSHROW/whereAreMyFingers for further information of setup and usage.
+.PP
+.SH OPTIONS
+.PP
+.I resultantView
+.RS
+.PP
+.B -c --compelete
+.RS
+Extracts entire log entries from the provided
+.B actionLogs
+file. This includes the EOA delimiters as well, which ensure atomicity of the data logs. As such teh resultant maybe used for analyzing over the data. Normally, it writes nothing to the STDOUT. It can take an argument in its
+.I viewOptions
+which is a file path to store the extracted logs into. By default, if this parameter is not provided, the path is taken as
+.B lastNCompleteLogs.log
+in the directory where whereAreMyFingers is located.
+.RE
+.PP
+.B -s --seperated
+.RS
+Extracts the log entries into two seperated files, respectively for Pointer Action Logs and Keyboard Action Logs. All entries in both the files are corresponding by nature of their time of generation. Through the optional 
+.I viewOptions
+two parameters can be accepted to denote the Pointer Out File and Keyboard Out File to which the seperated extracted logs will be written to. By default, the paths are respectively
+.B PointerLogs.log KeyboardLogs.log
+in the directory where whereAreMyFingers is located.
+.RE
+.PP
+.B -C --cumulative
+.RS
+Writes the cumulative sums of the Pointer Actions and Keyboard Actions over last N log entries, onto the STDOUT. The order of output is Pointer-corresponding resultant followed by the Keyboard-corresponding resultant. There are no 
+.I viewOptions
+.RE
+.PP
+.B -a --average
+.RS
+Writes the averaged values of the Pointer Actions and Keyboard Actions over last N log entries, onto the STDOUT. The order of output is Pointer-corresponding resultant followed by the Keyboard-corresponding resultant. The outputs are upto 3 decimal places and provided by 
+.B bc
+There are no 
+.I viewOptions
+.RE
+.PP
+.B -r --ratio
+.RS
+Gets the ratio of Keyboard Actions to Pointer Actions over last N log entries, upto 3 decimal places by use of 
+.B bc
+division over their respective cumulative values. This is the default behaviour when there is no
+.I viewOptions
+provided. However with the flag
+.B -i --inverse
+the resultant may suitably be inversed to get the ratio of Pointer Actions to Keyboard Actions similarly.
+.RE
+.RE
+.PP
+.I NparameterOptions
+.RS
+.PP
+.B -T --time
+.RS
+This option provides the N parameter to depend on real time of logging, and extracts the last 
+.B NValue * BufferSwitchTime
+log entries, where the latter is a variable defined in both the scripts of the directory whereAreMyFingers. The implementation for estimation through timestamps is not provided however. 
+.RE
+.PP
+.B -R --record
+.RS
+This option is independent of BufferSwitchTime or any other time-logging activities. It simply looks up the resultantView for the last N log entries as dictated by
+.B NValue
+.RE
+.RE
+.SH DEFAULTS
+.PP
+.I resultantView
+.RS
+-r --ratio
+.RE
+.PP
+.I viewOptions
+.RS
+As provided by the associated 
+.I resultantView
+, it may have different interpretations.
+.RE
+.PP
+.I NparameterOptions
+.RS
+-R --record
+.RE
+.PP
+.B NValue
+.RS
+This is a mandatory argument and it facilitates the value of N which is used in all different implementations of
+.B resultantView s available 
+.RE
+.SH BUGS
+.PP
+To look into setup instructions, refer README.md at github.com/GOSHROW/whereAreMyFingers . Certain runtime errors may have been logged to .log files in the directory of whereAreMyFingers. No bugs found yet.
+.SH AUTHOR
+Swapnil Ghosh
+.B GOSHROW.
+Contact for any further developement / bugs at goshrow@gmail.com

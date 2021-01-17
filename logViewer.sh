@@ -61,7 +61,7 @@ getRatio() {
     local N="$1"
     local numerator="$2"
     # distinguishes keyboard:pointer and pointer:keyboard
-    # k and K are keyboard:pointer, other keys are the inverse
+    # k and K are keyboard:pointer, p and P are the inverse
     local cumulativeArrayOverNLogs=($(getCumulativeOverNLogs $N))
     local pointerCumulativeOverNLogs=${cumulativeArrayOverNLogs[0]}
     local keyboardCumulativeOverNLogs=${cumulativeArrayOverNLogs[1]}

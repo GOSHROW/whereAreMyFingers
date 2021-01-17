@@ -29,3 +29,12 @@ label=Fingers:
 interval=120
 color=#55FF66
 ```
+
+To set up the man page, 
+```
+sudo su 
+gzip viewMyFingers.1
+cp viewMyFingers.1.gz /usr/share/man/man1
+mandb
+man viewMyFingers
+```
